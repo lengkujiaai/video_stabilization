@@ -7,7 +7,7 @@ https://learnopencv.com/video-stabilization-using-point-feature-matching-in-open
 在OpenCV中通过匹配点特征实现视频防抖
 
 在本文中，我们会介绍一种OpenCV库中点特征匹配的技术来实现一个简单的视频稳定器。在这里会讨论算法并分享一个用OpenCV中方法设计的简单稳定器的python代码。
-本文是受到Nghia Ho （http://nghiaho.com/?p=2093） 和另一篇文章的启发 （https://abhitronix.github.io/2018/11/30/humanoid-AEAM-3/） 。
+本文是受到Nghia Ho（ http://nghiaho.com/?p=2093 ）和另一篇文章的启发（ https://abhitronix.github.io/2018/11/30/humanoid-AEAM-3/ ）。
 
 视频防抖是指用来降低相机动作在最终视频上影响的一系列方法。相机动作包括平移（x、y、z）和旋转（yaw、pitch、roll）。
 
@@ -40,7 +40,9 @@ https://learnopencv.com/video-stabilization-using-point-feature-matching-in-open
  
 
 第1步：设置读取输入视频和保存输出视频。
+
 Python
+
 #Import numpy and OpenCV
 
 import numpy as np
@@ -157,7 +159,6 @@ for i in range(n_frames-2):
   success, curr = cap.read()
   
   if not success:
-  
     break
  
   #Convert to grayscale
@@ -219,13 +220,9 @@ struct TransformParam
   TransformParam(double _dx, double _dy, double _da)
   
   {
-  
       dx = _dx;
-      
       dy = _dy;
-      
       da = _da;
-      
   }
  
   double dx;
@@ -654,6 +651,7 @@ Python
 
 def fixBorder(frame):
   s = frame.shape
+  
   #Scale the image 4% without moving the center
   
   T = cv2.getRotationMatrix2D((s[1]/2, s[0]/2), 0, 1.04)
