@@ -739,6 +739,8 @@ void fixBorder(Mat &frame_stabilized)
 
 5、https://www.youtube.com/results?search_query=live+video+stabilization+
 
+6、F Vella, A Castorina, M Mancuso. Digital image stabilization by adaptive block motion 	vectors filtering, IEEE Transactions on Consumer Electronics, 2002
+
 
 # 关于我们
 
