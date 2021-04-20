@@ -2,6 +2,7 @@
 对一段视频防抖，对实时视频防抖（usb相机、rtsp相机）
 
 先看一段我故意摇晃摄像头，经过防抖处理后的效果：
+
 ![image](https://github.com/lengkujiaai/video_stabilization/blob/main/image/live_stabilization.gif)
 
 
