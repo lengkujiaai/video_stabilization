@@ -40,24 +40,24 @@ https://learnopencv.com/video-stabilization-using-point-feature-matching-in-open
 
 第1步：设置读取输入视频和保存输出视频。
 Python
-# Import numpy and OpenCV
+#Import numpy and OpenCV
 import numpy as np
 import cv2
  
-# Read input video
+#Read input video
 cap = cv2.VideoCapture('video.mp4')
  
-# Get frame count
+#Get frame count
 n_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
  
-# Get width and height of video stream
+#Get width and height of video stream
 w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
  
-# Define the codec for output video
+#Define the codec for output video
 fourcc = cv2.VideoWriter_fourcc(*'MJPG')
  
-# Set up output video
+#Set up output video
 out = cv2.VideoWriter('video_out.mp4', fourcc, fps, (w, h))
 
 C++
@@ -79,10 +79,10 @@ VideoWriter out("video_out.avi", CV_FOURCC('M','J','P','G'), fps, Size(2 * w, h)
 
 第2步：读取第一帧并转成灰度图。对于视频防抖，需要捕获视频中的两帧，估算两帧之间的运动，改正运动。
 Python
-# Read first frame
+#Read first frame
 _, prev = cap.read()
  
-# Convert frame to grayscale
+#Convert frame to grayscale
 prev_gray = cv2.cvtColor(prev, cv2.COLOR_BGR2GRAY)
 C++
 
@@ -115,32 +115,32 @@ cvtColor(prev, prev_gray, COLOR_BGR2GRAY);
 
 
 Python
-# Pre-define transformation-store array
+#Pre-define transformation-store array
 transforms = np.zeros((n_frames-1, 3), np.float32)
  
 for i in range(n_frames-2):
-  # Detect feature points in previous frame
+  #Detect feature points in previous frame
   prev_pts = cv2.goodFeaturesToTrack(prev_gray,
                                      maxCorners=200,
                                      qualityLevel=0.01,
                                      minDistance=30,
                                      blockSize=3)
  
-  # Read next frame
+  #Read next frame
   success, curr = cap.read()
   if not success:
     break
  
-  # Convert to grayscale
+  #Convert to grayscale
   curr_gray = cv2.cvtColor(curr, cv2.COLOR_BGR2GRAY)
  
-  # Calculate optical flow (i.e. track feature points)
+  #Calculate optical flow (i.e. track feature points)
   curr_pts, status, err = cv2.calcOpticalFlowPyrLK(prev_gray, curr_gray, prev_pts, None)
  
-  # Sanity check
+  #Sanity check
   assert prev_pts.shape == curr_pts.shape
  
-  # Filter only valid points
+  #Filter only valid points
   idx = np.where(status==1)[0]
   prev_pts = prev_pts[idx]
   curr_pts = curr_pts[idx]
@@ -148,17 +148,17 @@ for i in range(n_frames-2):
   #Find transformation matrix
   m = cv2.estimateRigidTransform(prev_pts, curr_pts, fullAffine=False) #will only work with OpenCV-3 or less
  
-  # Extract traslation
+  #Extract traslation
   dx = m[0,2]
   dy = m[1,2]
  
-  # Extract rotation angle
+  #Extract rotation angle
   da = np.arctan2(m[1,0], m[0,0])
  
-  # Store transformation
+  #Store transformation
   transforms[i] = [dx,dy,da]
  
-  # Move to next frame
+  #Move to next frame
   prev_gray = curr_gray
  
   print("Frame: " + str(i) +  "/" + str(n_frames) + " -  Tracked points : " + str(len(prev_pts)))
@@ -269,7 +269,7 @@ struct TransformParam
 本步中，通过加上帧间的运动来计算轨迹。终极目标是把这个轨迹平滑掉。
 Python
 在python中通过numpy中的cumsum方法很容易实现。
-# Compute trajectory using cumulative sum of transformations
+#Compute trajectory using cumulative sum of transformations
 trajectory = np.cumsum(transforms, axis=0)
 
 C++
@@ -325,26 +325,26 @@ Python
 在python的实现中，定义了一个移动平均滤波器把任何曲线做为输入，返回平滑的曲线。
 def movingAverage(curve, radius):
   window_size = 2 * radius + 1
-  # Define the filter
+  #Define the filter
   f = np.ones(window_size)/window_size
-  # Add padding to the boundaries
+  #Add padding to the boundaries
   curve_pad = np.lib.pad(curve, (radius, radius), 'edge')
-  # Apply convolution
+  #Apply convolution
   curve_smoothed = np.convolve(curve_pad, f, mode='same')
-  # Remove padding
+  #Remove padding
   curve_smoothed = curve_smoothed[radius:-radius]
-  # return smoothed curve
+  #return smoothed curve
   return curve_smoothed
 还定义了一个函数，以轨迹做为输入，在三个曲线上做平滑。
 def smooth(trajectory):
   smoothed_trajectory = np.copy(trajectory)
-  # Filter the x, y and angle curves
+  #Filter the x, y and angle curves
   for i in range(3):
     smoothed_trajectory[:,i] = movingAverage(trajectory[:,i], radius=SMOOTHING_RADIUS)
  
   return smoothed_trajectory
 下面是最后的使用。
-# Compute trajectory using cumulative sum of transformations
+#Compute trajectory using cumulative sum of transformations
 trajectory = np.cumsum(transforms, axis=0)
 
 C++
@@ -387,10 +387,10 @@ vector <Trajectory> smoothed_trajectory = smooth(trajectory, SMOOTHING_RADIUS);
 现在已经获得了平滑轨迹。在这一步，用平滑轨迹获得平滑转换，这个平滑转换可以作用于视频帧上稳定视频。通过对比平滑轨迹与原始轨迹，把差值作用到原始转换上。
 
 Python
-# Calculate difference in smoothed_trajectory and trajectory
+#Calculate difference in smoothed_trajectory and trajectory
 difference = smoothed_trajectory - trajectory
  
-# Calculate newer transformation array
+#Calculate newer transformation array
 transforms_smooth = transforms + difference
 
 C++
@@ -418,22 +418,22 @@ vector <TransformParam> transforms_smooth;
  
 
 Python
-# Reset stream to first frame
+#Reset stream to first frame
 cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
  
-# Write n_frames-1 transformed frames
+#Write n_frames-1 transformed frames
 for i in range(n_frames-2):
-  # Read next frame
+  #Read next frame
   success, frame = cap.read()
   if not success:
     break
  
-  # Extract transformations from the new transformation array
+  #Extract transformations from the new transformation array
   dx = transforms_smooth[i,0]
   dy = transforms_smooth[i,1]
   da = transforms_smooth[i,2]
  
-  # Reconstruct transformation matrix accordingly to new values
+  #Reconstruct transformation matrix accordingly to new values
   m = np.zeros((2,3), np.float32)
   m[0,0] = np.cos(da)
   m[0,1] = -np.sin(da)
@@ -442,16 +442,16 @@ for i in range(n_frames-2):
   m[0,2] = dx
   m[1,2] = dy
  
-  # Apply affine wrapping to the given frame
+  #Apply affine wrapping to the given frame
   frame_stabilized = cv2.warpAffine(frame, m, (w,h))
  
-  # Fix border artifacts
+  #Fix border artifacts
   frame_stabilized = fixBorder(frame_stabilized)
  
-  # Write the frame to the file
+  #Write the frame to the file
   frame_out = cv2.hconcat([frame, frame_stabilized])
  
-  # If the image is too big, resize it.
+  #If the image is too big, resize it.
   if(frame_out.shape[1] &gt; 1920):
     frame_out = cv2.resize(frame_out, (frame_out.shape[1]/2, frame_out.shape[0]/2));
  
@@ -501,7 +501,7 @@ for( int i = 0; i < n_frames-1; i++)
 Python
 def fixBorder(frame):
   s = frame.shape
-  # Scale the image 4% without moving the center
+  #Scale the image 4% without moving the center
   T = cv2.getRotationMatrix2D((s[1]/2, s[0]/2), 0, 1.04)
   frame = cv2.warpAffine(frame, T, (s[1], s[0]))
   return frame
