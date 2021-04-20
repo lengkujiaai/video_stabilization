@@ -5,6 +5,17 @@
 
 ![image](https://github.com/lengkujiaai/video_stabilization/blob/main/image/live_stabilization.gif)
 
+调用摄像头实时视频的处理，左侧是处理前的视频，右侧是处理后的视频：
+
+![image](https://github.com/lengkujiaai/video_stabilization/blob/main/image/compare.gif)
+
+对一段视频的处理，左侧是处理前的一段视频，右侧是处理后的一段视频：
+
+![image](https://github.com/lengkujiaai/video_stabilization/blob/main/image/compare_video.gif)
+
+用手机随意拍一段就可以用，下面的链接是我使用的视频：
+
+![image](https://7869-xiaoxue-3-6-ad8d09-1257746400.tcb.qcloud.la/video.mp4?sign=acae2c389409c58e043694f569fe86dd&t=1618907958)
 
 # 视频防抖的应用
 
