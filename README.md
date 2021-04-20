@@ -1,5 +1,6 @@
 # video_stabilization
 对一段视频防抖，对实时视频防抖（usb相机、rtsp相机）
+我的邮箱：lengkujiaai@126.com
 
 # 先看几个效果
 
@@ -17,7 +18,7 @@
 
 用手机随意拍一段就可以用，下面的链接是我使用的视频：
 
-![image](https://7869-xiaoxue-3-6-ad8d09-1257746400.tcb.qcloud.la/video.mp4?sign=acae2c389409c58e043694f569fe86dd&t=1618907958)
+https://7869-xiaoxue-3-6-ad8d09-1257746400.tcb.qcloud.la/video.mp4?sign=acae2c389409c58e043694f569fe86dd&t=1618907958
 
 # 视频防抖的应用
 
@@ -727,3 +728,14 @@ void fixBorder(Mat &frame_stabilized)
 4、http://nghiaho.com/?p=2093
 
 5、https://www.youtube.com/results?search_query=live+video+stabilization+
+
+
+# 关于我们
+
+1、2021-04-20，本部门为研发中心。
+
+2、公司在淘宝销售nvidia jetson 系列的产品，包括jetson nano，     TX1,     TX2,    AGX XAVIER,        XAVIER NX产品
+
+3、技术微信
+
+![image](https://github.com/lengkujiaai/video_stabilization/blob/main/image/weixin.jpg)
