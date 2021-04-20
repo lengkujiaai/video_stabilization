@@ -1,6 +1,9 @@
 # video_stabilization
 对一段视频防抖，对实时视频防抖（usb相机、rtsp相机）
 
+先看一段视频防抖的效果：
+![image](https://github.com/lengkujiaai/video_stabilization/blob/main/image/live_stabilization.gif)
+
 # 视频防抖的应用
 
 对视频防抖的需求跨越多个领域。
