@@ -698,6 +698,10 @@ void fixBorder(Mat &frame_stabilized)
 
 1、	C++代码目录：/sources/videostab.cpp
 
-2、 参考资料：https://abhitronix.github.io/
+2、 https://abhitronix.github.io/
 
-3、参考资料：https://learnopencv.com/video-stabilization-using-point-feature-matching-in-opencv/
+3、https://learnopencv.com/video-stabilization-using-point-feature-matching-in-opencv/
+
+4、http://nghiaho.com/?p=2093
+
+5、https://www.youtube.com/results?search_query=live+video+stabilization+
