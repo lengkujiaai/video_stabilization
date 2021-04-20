@@ -6,7 +6,8 @@ https://learnopencv.com/video-stabilization-using-point-feature-matching-in-open
 
 在OpenCV中通过匹配点特征实现视频防抖
 
-在本文中，我们会介绍一种OpenCV库中点特征匹配的技术来实现一个简单的视频稳定器。在这里会讨论算法并分享一个用OpenCV中方法设计的简单稳定器的python代码。本文是受到Nghia Ho（http://nghiaho.com/?p=2093）和另一篇文章的启发（https://abhitronix.github.io/2018/11/30/humanoid-AEAM-3/）。
+在本文中，我们会介绍一种OpenCV库中点特征匹配的技术来实现一个简单的视频稳定器。在这里会讨论算法并分享一个用OpenCV中方法设计的简单稳定器的python代码。
+本文是受到Nghia Ho （http://nghiaho.com/?p=2093） 和另一篇文章的启发 （https://abhitronix.github.io/2018/11/30/humanoid-AEAM-3/） 。
 
 视频防抖是指用来降低相机动作在最终视频上影响的一系列方法。相机动作包括平移（x、y、z）和旋转（yaw、pitch、roll）。
 
@@ -67,20 +68,26 @@ fourcc = cv2.VideoWriter_fourcc(*'MJPG')
 out = cv2.VideoWriter('video_out.mp4', fourcc, fps, (w, h))
 
 C++
+
 // Read input video
+
 VideoCapture cap("video.mp4");
  
 // Get frame count
+
 int n_frames = int(cap.get(CAP_PROP_FRAME_COUNT));
  
 // Get width and height of video stream
+
 int w = int(cap.get(CAP_PROP_FRAME_WIDTH));
 int h = int(cap.get(CAP_PROP_FRAME_HEIGHT));
  
 // Get frames per second (fps)
+
 double fps = cap.get(CV_CAP_PROP_FPS);
  
 // Set up output video
+
 VideoWriter out("video_out.avi", CV_FOURCC('M','J','P','G'), fps, Size(2 * w, h));
 
 第2步：读取第一帧并转成灰度图。对于视频防抖，需要捕获视频中的两帧，估算两帧之间的运动，改正运动。
@@ -393,7 +400,9 @@ struct Trajectory
 vector<Trajectory> cumsum(vector<TransformParam> &transforms)
 {
   vector <Trajectory> trajectory; // trajectory at all frames
+ 
   // Accumulated frame to frame transform
+ 
   double a = 0;
   double x = 0;
   double y = 0;
@@ -426,26 +435,45 @@ Python
 在python的实现中，定义了一个移动平均滤波器把任何曲线做为输入，返回平滑的曲线。
 def movingAverage(curve, radius):
   window_size = 2 * radius + 1
+  
   #Define the filter
+  
   f = np.ones(window_size)/window_size
+  
   #Add padding to the boundaries
+  
   curve_pad = np.lib.pad(curve, (radius, radius), 'edge')
+  
   #Apply convolution
+  
   curve_smoothed = np.convolve(curve_pad, f, mode='same')
+  
   #Remove padding
+  
   curve_smoothed = curve_smoothed[radius:-radius]
+  
   #return smoothed curve
+  
   return curve_smoothed
 还定义了一个函数，以轨迹做为输入，在三个曲线上做平滑。
+
 def smooth(trajectory):
+
   smoothed_trajectory = np.copy(trajectory)
+  
   #Filter the x, y and angle curves
+  
   for i in range(3):
+  
     smoothed_trajectory[:,i] = movingAverage(trajectory[:,i], radius=SMOOTHING_RADIUS)
  
   return smoothed_trajectory
+  
+  
 下面是最后的使用。
+
 #Compute trajectory using cumulative sum of transformations
+
 trajectory = np.cumsum(transforms, axis=0)
 
 C++
@@ -506,11 +534,13 @@ vector <TransformParam> transforms_smooth;
   for(size_t i=0; i < transforms.size(); i++)
   {
     // Calculate difference in smoothed_trajectory and trajectory
+    
     double diff_x = smoothed_trajectory[i].x - trajectory[i].x;
     double diff_y = smoothed_trajectory[i].y - trajectory[i].y;
     double diff_a = smoothed_trajectory[i].a - trajectory[i].a;
  
     // Calculate newer transformation array
+    
     double dx = transforms[i].dx + diff_x;
     double dy = transforms[i].dy + diff_y;
     double da = transforms[i].da + diff_a;
@@ -532,7 +562,9 @@ cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
 for i in range(n_frames-2):
   #Read next frame
+  
   success, frame = cap.read()
+  
   if not success:
     break
  
@@ -574,6 +606,7 @@ for i in range(n_frames-2):
   out.write(frame_out)
 
 C++
+
 cap.set(CV_CAP_PROP_POS_FRAMES, 1);
 Mat T(2,3,CV_64F);
 Mat frame, frame_stabilized, frame_out;
@@ -584,18 +617,23 @@ for( int i = 0; i < n_frames-1; i++)
     if(!success) break;
      
     // Extract transform from translation and rotation angle.
+    
     transforms_smooth[i].getTransform(T);
  
     // Apply affine wrapping to the given frame
+    
     warpAffine(frame, frame_stabilized, T, frame.size());
  
     // Scale image to remove black border artifact
+    
     fixBorder(frame_stabilized);
  
     // Now draw the original and stablised side by side for coolness
+    
     hconcat(frame, frame_stabilized, frame_out);
  
     // If the image is too big, resize it.
+    
     if(frame_out.cols > 1920)
     {
         resize(frame_out, frame_out, Size(frame_out.cols/2, frame_out.rows/2));
@@ -613,14 +651,17 @@ for( int i = 0; i < n_frames-1; i++)
 下面的函数fixBorder就是实现该功能的。用到了getRotationMatrix2D函数，因为这个函数在不移动图片中心的情况下可以旋转和缩放图片。这里不需要旋转，只要把图片缩放1.04就可以了（最大是放大4%）。
 
 Python
+
 def fixBorder(frame):
   s = frame.shape
   #Scale the image 4% without moving the center
+  
   T = cv2.getRotationMatrix2D((s[1]/2, s[0]/2), 0, 1.04)
   frame = cv2.warpAffine(frame, T, (s[1], s[0]))
   return frame
 
 C++
+
 void fixBorder(Mat &frame_stabilized)
 {
   Mat T = getRotationMatrix2D(Point2f(frame_stabilized.cols/2, frame_stabilized.rows/2), 0, 1.04);
