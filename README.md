@@ -29,7 +29,7 @@ https://learnopencv.com/video-stabilization-using-point-feature-matching-in-open
 
 本文中我们会学习一个数字视频防抖算法的快速和健壮的实现。这个算法基于二维运动模型，该模型结合了欧氏转换和移动、旋转、缩放。
  
-
+![image](https://github.com/lengkujiaai/video_stabilization/blob/main/image/motionmodels.jpg)
 
 从上图可以看到，在欧式运动模型中，一个正方形可以通过不同的位置、大小、旋转转换到其它正方形。这样比仿射变换和单应性变换要严格很多，但是对运动的稳定是足够的，因为在连续两帧之间的相机移动经常很小。
 
