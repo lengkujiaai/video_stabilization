@@ -37,11 +37,11 @@ https://learnopencv.com/video-stabilization-using-point-feature-matching-in-open
 这个方法用到了追踪连续两帧之间的特征点。通过追踪到的特征可以估计两帧之间的运动并进行弥补。
 
 下面的流程图显示了基本步骤。
- 
+ ![image](https://github.com/lengkujiaai/video_stabilization/blob/main/image/flowchart.png)
 
-第1步：设置读取输入视频和保存输出视频。
+## 第1步：设置读取输入视频和保存输出视频。
 
-Python
+# Python
 
 #Import numpy and OpenCV
 
@@ -69,7 +69,7 @@ fourcc = cv2.VideoWriter_fourcc(*'MJPG')
 
 out = cv2.VideoWriter('video_out.mp4', fourcc, fps, (w, h))
 
-C++
+# C++
 
 // Read input video
 
@@ -92,8 +92,9 @@ double fps = cap.get(CV_CAP_PROP_FPS);
 
 VideoWriter out("video_out.avi", CV_FOURCC('M','J','P','G'), fps, Size(2 * w, h));
 
-第2步：读取第一帧并转成灰度图。对于视频防抖，需要捕获视频中的两帧，估算两帧之间的运动，改正运动。
-Python
+## 第2步：读取第一帧并转成灰度图。对于视频防抖，需要捕获视频中的两帧，估算两帧之间的运动，改正运动。
+
+# Python
 
 #Read first frame
 
@@ -103,7 +104,7 @@ _, prev = cap.read()
 
 prev_gray = cv2.cvtColor(prev, cv2.COLOR_BGR2GRAY)
 
-C++
+# C++
 
 // Define variable for storing frames
 
@@ -119,25 +120,31 @@ cap >> prev;
 
 cvtColor(prev, prev_gray, COLOR_BGR2GRAY);
 
-第3步：发现两帧之间的运动。这是算法中最重要的部分。我们会重复所有的帧，发现当前帧与前一帧之间的运动。没必要知道每个像素点的运动。欧式运动模型要求我们知道两帧上的两点就够了。实际上，发现50-100个点的运动会更好，再用他们自信的估算运动模型。
+# 第3步：
+发现两帧之间的运动。这是算法中最重要的部分。我们会重复所有的帧，发现当前帧与前一帧之间的运动。没必要知道每个像素点的运动。欧式运动模型要求我们知道两帧上的两点就够了。实际上，发现50-100个点的运动会更好，再用他们自信的估算运动模型。
 
 
-3.1 更易追踪的特征
+# 3.1 更易追踪的特征
+
 现在的问题是需要选择哪些点来追踪。需要记住，追踪算法使用某个点周围的小片区域来追踪。这样的追踪算法遇到了光圈问题，下面的视频会解释。
 所以光滑的区域不利于追踪，而有很多角落的纹理有利于追踪。幸运的是，OpenCV有一个快速的特征探测器用来探测纹理，这个非常适合追踪。这称作易于追踪的特征。
 
-3.2 Lucas-Kanade 光流算法
+# 3.2 Lucas-Kanade 光流算法
+
 一旦在前一帧中发现好的特征，就可以用Lucas-Kanade 光流算法在下一帧中追踪。Lucas-Kanade  Optical Flow 以发明者的名字命名。OpenCV中的calcOpticalFlowPyrLK函数实现了该功能。LK代表Lucas-Kanade，Pyr代表pyramid，一个图片pyramid在计算机视觉中用来在不同大小（分辨率）下处理图片。
 
 由于多种原因，calcOpticalFlowPyrLK可能无法计算所有点的运动。例如，当前帧的特征点可能在下一帧中被遮盖。幸运的是，在下面的代码中你会看到，calcOpticalFlowPyrLK中的status标签可以用来过滤掉这些值。
 
-3.3 运动估算
+# 3.3 运动估算
+
 重述一下，在3.1 ，在前一帧中发现易于追踪的特征；在3.2，用光流追踪特征。换句话说，在当前帧中发现纹理的位置，已经知道前一帧中纹理的位置。就可以利用两个位置的集来计算从前一帧到当前帧的欧式转换。用estimateRigidTransform函数来实现这个转换。
+
 一旦对运动估算完成，就可以解析出平移的x、y和旋转的角度。把这些值存储到数组中用来平滑图像。
+
 下面的代码描述了步骤3.1到3.3。阅读的时候一定记得看看代码中的注释。
 
 
-Python
+# Python
 
 
 #Pre-define transformation-store array
@@ -209,7 +216,7 @@ for i in range(n_frames-2):
 在C++的实现中，先定义了几个用来存储运动估算向量的类。TransformParam类存储运动信息（dx---x方向的运动，dy---y方向的运动，da---角度的变动），并提供了一个getTransform方法把对应的运动转换成矩阵。
 
 
-C++
+# C++
 
 struct TransformParam
 
@@ -361,13 +368,13 @@ struct TransformParam
     
   }
 
-第4步：计算帧间的平滑运动
+# 第4步：计算帧间的平滑运动
 在前面的步骤中，已经估算了帧间的运动并存储到数组中。现在需要通过累积加上前面步骤中不同运动的估算来得到运动轨迹。
 
-4.1 计算轨迹
+# 4.1 计算轨迹
 本步中，通过加上帧间的运动来计算轨迹。终极目标是把这个轨迹平滑掉。
 
-Python
+# Python
 
 在python中通过numpy中的cumsum方法很容易实现。
 
@@ -375,7 +382,7 @@ Python
 
 trajectory = np.cumsum(transforms, axis=0)
 
-C++
+# C++
 
 在C++中，定义了一个Trajectory类来存储转换参数的和。
 
@@ -417,18 +424,21 @@ vector<Trajectory> cumsum(vector<TransformParam> &transforms)
   return trajectory;
 }
 
-4.2 计算平滑轨迹
+# 4.2 计算平滑轨迹
+
 在前面的步骤中已经计算了运动轨迹。所以有三个曲线（x、y、角度）来展示随着时间变化的运动。这里将展示如何平滑这三个曲线。
 
 平滑曲线的最简单的方式是用移动平均滤波器。正如其名字的意思，一个移动平均滤波器用一个窗口中某点临近点的平均值来取代该点函数的值。可以看一个例子。
 
 假设把曲线存储在数组c中，所以曲线上的点是c[0]…c[n-1].假设函数f做为平滑曲线，f用跨度为5的平均移动滤波器。
 这个曲线的第k个元素的计算方式为：
+
+![image](https://github.com/lengkujiaai/video_stabilization/blob/main/image/f1.png)
  
 可以看到，平滑曲线的值是小范围内噪声曲线的平均值。下图中左侧的是包含噪声的图表，右侧的是跨度为5的滤波器处理后的图表。
-
+![image](https://github.com/lengkujiaai/video_stabilization/blob/main/image/boxfiltering.png)
  
-Python
+# Python
 在python的实现中，定义了一个移动平均滤波器把任何曲线做为输入，返回平滑的曲线。
 def movingAverage(curve, radius):
   window_size = 2 * radius + 1
@@ -473,7 +483,7 @@ def smooth(trajectory):
 
 trajectory = np.cumsum(transforms, axis=0)
 
-C++
+# C++
 定义函数smooth用来计算平均的移动平滑轨迹。
 
 vector <Trajectory> smooth(vector <Trajectory>& trajectory, int radius)
@@ -510,10 +520,10 @@ vector <Trajectory> smooth(vector <Trajectory>& trajectory, int radius)
 
 vector <Trajectory> smoothed_trajectory = smooth(trajectory, SMOOTHING_RADIUS);
 
-4.3 计算平滑转换
+# 4.3 计算平滑转换
 现在已经获得了平滑轨迹。在这一步，用平滑轨迹获得平滑转换，这个平滑转换可以作用于视频帧上稳定视频。通过对比平滑轨迹与原始轨迹，把差值作用到原始转换上。
 
-Python
+# Python
 
 #Calculate difference in smoothed_trajectory and trajectory
 
@@ -523,7 +533,7 @@ difference = smoothed_trajectory - trajectory
 
 transforms_smooth = transforms + difference
 
-C++
+# C++
 
 
 vector <TransformParam> transforms_smooth;
@@ -544,12 +554,14 @@ vector <TransformParam> transforms_smooth;
  
     transforms_smooth.push_back(TransformParam(dx, dy, da));
   }
-第5步：将平滑的相机运动作用到视频帧上
-剩下的只需要遍历所有的帧，并把刚计算得到的转换应用到这些帧上。如果有一个公式 ，对应 的转换矩阵为：
+  
+# 第5步：将平滑的相机运动作用到视频帧上
 
- 
+剩下的只需要遍历所有的帧，并把刚计算得到的转换应用到这些帧上。如果有一个公式![image](https://github.com/lengkujiaai/video_stabilization/blob/main/image/xys.png)，对应的转换矩阵为：
 
-Python
+![image](https://github.com/lengkujiaai/video_stabilization/blob/main/image/f2.png)
+
+# Python
 
 #Reset stream to first frame
 
@@ -602,7 +614,7 @@ for i in range(n_frames-2):
   cv2.waitKey(10)
   out.write(frame_out)
 
-C++
+# C++
 
 cap.set(CV_CAP_PROP_POS_FRAMES, 1);
 Mat T(2,3,CV_64F);
@@ -641,13 +653,13 @@ for( int i = 0; i < n_frames-1; i++)
     waitKey(10);
   }
 
-5.1 修改边界效果
+# 5.1 修改边界效果
 
 当稳定一个视频的时候，有时能看到黑色的边界效果。帧的尺寸可能会缩小，所以黑色边界是可预料的。可以通过轻微的参照中心缩放视频来缓和黑色边界。
 
 下面的函数fixBorder就是实现该功能的。用到了getRotationMatrix2D函数，因为这个函数在不移动图片中心的情况下可以旋转和缩放图片。这里不需要旋转，只要把图片缩放1.04就可以了（最大是放大4%）。
 
-Python
+# Python
 
 def fixBorder(frame):
   s = frame.shape
@@ -658,7 +670,7 @@ def fixBorder(frame):
   frame = cv2.warpAffine(frame, T, (s[1], s[0]))
   return frame
 
-C++
+# C++
 
 void fixBorder(Mat &frame_stabilized)
 {
@@ -666,22 +678,26 @@ void fixBorder(Mat &frame_stabilized)
   warpAffine(frame_stabilized, frame_stabilized, T, frame_stabilized.size());
 }
 
-结果：
+# 结果：
+
 上面展示了防抖的代码。这里的目标是显著的降低运动的影响，而不上完全消除。完全消除运动的影响这个问题留给读者去思考如何修改代码。你如果完全消除相机的运动影响会有什么副作用呢？
 
 这里的代码只是能处理一段固定长度的视频，而不是实时的视频。如果要进行实时输出视频，需要修改多出代码，这个不在本文的范围内。更多资料请参考：https://abhitronix.github.io/2018/11/30/humanoid-AEAM-3/
 
 
-优点：
+# 优点：
+
 1、对于低频率的运动，该方法可以起到很好的稳定效果
 2、该方法消耗内存不多，所以适合嵌入式设备（像树莓派）
 3、该方法对视频中的突然抖动有稳定效果
 
-缺点：
+# 缺点：
+
 1、	该方法对高频率扰动表现不好
 2、	如果有严重的运动模糊，会导致特征追踪失败，效果也不会好
 3、	该方法对卷帘快门扭曲的效果也不好
 
-参考资料：
+# 参考资料：
+
 1、	代码：videostab.cpp
 2、	数据、图片来自：https://abhitronix.github.io/
