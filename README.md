@@ -1,9 +1,6 @@
 # video_stabilization
 对一段视频防抖，对实时视频防抖（usb相机、rtsp相机）
 
-英文链接：
-https://learnopencv.com/video-stabilization-using-point-feature-matching-in-opencv/
-
 在OpenCV中通过匹配点特征实现视频防抖
 
 在本文中，我们会介绍一种OpenCV库中点特征匹配的技术来实现一个简单的视频稳定器。在这里会讨论算法并分享一个用OpenCV中方法设计的简单稳定器的python代码。
@@ -702,3 +699,5 @@ void fixBorder(Mat &frame_stabilized)
 1、	代码：videostab.cpp
 
 2、 参考资料：https://abhitronix.github.io/
+
+3、参考资料：https://learnopencv.com/video-stabilization-using-point-feature-matching-in-opencv/
