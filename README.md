@@ -41,23 +41,29 @@ https://learnopencv.com/video-stabilization-using-point-feature-matching-in-open
 第1步：设置读取输入视频和保存输出视频。
 Python
 #Import numpy and OpenCV
+
 import numpy as np
 import cv2
  
 #Read input video
+
 cap = cv2.VideoCapture('video.mp4')
  
 #Get frame count
+
 n_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
  
 #Get width and height of video stream
+
 w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
  
 #Define the codec for output video
+
 fourcc = cv2.VideoWriter_fourcc(*'MJPG')
  
 #Set up output video
+
 out = cv2.VideoWriter('video_out.mp4', fourcc, fps, (w, h))
 
 C++
@@ -79,21 +85,29 @@ VideoWriter out("video_out.avi", CV_FOURCC('M','J','P','G'), fps, Size(2 * w, h)
 
 第2步：读取第一帧并转成灰度图。对于视频防抖，需要捕获视频中的两帧，估算两帧之间的运动，改正运动。
 Python
+
 #Read first frame
+
 _, prev = cap.read()
  
 #Convert frame to grayscale
+
 prev_gray = cv2.cvtColor(prev, cv2.COLOR_BGR2GRAY)
+
 C++
 
 // Define variable for storing frames
+
 Mat curr, curr_gray;
+
 Mat prev, prev_gray;
  
 // Read first frame
+
 cap >> prev;
  
 // Convert frame to grayscale
+
 cvtColor(prev, prev_gray, COLOR_BGR2GRAY);
 
 第3步：发现两帧之间的运动。这是算法中最重要的部分。我们会重复所有的帧，发现当前帧与前一帧之间的运动。没必要知道每个像素点的运动。欧式运动模型要求我们知道两帧上的两点就够了。实际上，发现50-100个点的运动会更好，再用他们自信的估算运动模型。
@@ -115,11 +129,16 @@ cvtColor(prev, prev_gray, COLOR_BGR2GRAY);
 
 
 Python
+
+
 #Pre-define transformation-store array
+
 transforms = np.zeros((n_frames-1, 3), np.float32)
  
 for i in range(n_frames-2):
+
   #Detect feature points in previous frame
+  
   prev_pts = cv2.goodFeaturesToTrack(prev_gray,
                                      maxCorners=200,
                                      qualityLevel=0.01,
@@ -127,139 +146,215 @@ for i in range(n_frames-2):
                                      blockSize=3)
  
   #Read next frame
+  
   success, curr = cap.read()
+  
   if not success:
+  
     break
  
   #Convert to grayscale
+  
   curr_gray = cv2.cvtColor(curr, cv2.COLOR_BGR2GRAY)
  
   #Calculate optical flow (i.e. track feature points)
+  
   curr_pts, status, err = cv2.calcOpticalFlowPyrLK(prev_gray, curr_gray, prev_pts, None)
  
   #Sanity check
+  
   assert prev_pts.shape == curr_pts.shape
  
   #Filter only valid points
+  
   idx = np.where(status==1)[0]
+  
   prev_pts = prev_pts[idx]
+  
   curr_pts = curr_pts[idx]
  
   #Find transformation matrix
+  
   m = cv2.estimateRigidTransform(prev_pts, curr_pts, fullAffine=False) #will only work with OpenCV-3 or less
  
   #Extract traslation
+  
   dx = m[0,2]
+  
   dy = m[1,2]
  
   #Extract rotation angle
+  
   da = np.arctan2(m[1,0], m[0,0])
  
   #Store transformation
+  
   transforms[i] = [dx,dy,da]
  
   #Move to next frame
+  
   prev_gray = curr_gray
  
   print("Frame: " + str(i) +  "/" + str(n_frames) + " -  Tracked points : " + str(len(prev_pts)))
 
 
 在C++的实现中，先定义了几个用来存储运动估算向量的类。TransformParam类存储运动信息（dx---x方向的运动，dy---y方向的运动，da---角度的变动），并提供了一个getTransform方法把对应的运动转换成矩阵。
+
+
 C++
+
 struct TransformParam
+
 {
+
   TransformParam() {}
+  
   TransformParam(double _dx, double _dy, double _da)
+  
   {
+  
       dx = _dx;
+      
       dy = _dy;
+      
       da = _da;
+      
   }
  
   double dx;
+  
   double dy;
+  
   double da; // angle
  
   void getTransform(Mat &T)
+  
   {
+  
     // Reconstruct transformation matrix accordingly to new values
+    
     T.at<double>(0,0) = cos(da);
+    
     T.at<double>(0,1) = -sin(da);
+    
     T.at<double>(1,0) = sin(da);
+    
     T.at<double>(1,1) = cos(da);
  
     T.at<double>(0,2) = dx;
+    
     T.at<double>(1,2) = dy;
+    
   }
+  
 };
 
 下面的代码是在帧之间循环的执行步骤3.1到3.3
+
+
 // Pre-define transformation-store array
+
   vector <TransformParam> transforms;
  
   //
+  
   Mat last_T;
  
   for(int i = 1; i < n_frames-1; i++)
+  
   {
+  
     // Vector from previous and current feature points
+    
     vector <Point2f> prev_pts, curr_pts;
  
     // Detect features in previous frame
+    
     goodFeaturesToTrack(prev_gray, prev_pts, 200, 0.01, 30);
  
     // Read next frame
+    
     bool success = cap.read(curr);
+    
     if(!success) break;
      
     // Convert to grayscale
+    
     cvtColor(curr, curr_gray, COLOR_BGR2GRAY);
  
     // Calculate optical flow (i.e. track feature points)
+    
     vector <uchar> status;
+    
     vector <float> err;
+    
     calcOpticalFlowPyrLK(prev_gray, curr_gray, prev_pts, curr_pts, status, err);
  
     // Filter only valid points
+    
     auto prev_it = prev_pts.begin();
+    
     auto curr_it = curr_pts.begin();
+    
     for(size_t k = 0; k < status.size(); k++)
+    
     {
+    
         if(status[k])
+        
         {
+        
           prev_it++;
+          
           curr_it++;
+          
         }
+        
         else
+        
         {
+        
           prev_it = prev_pts.erase(prev_it);
+          
           curr_it = curr_pts.erase(curr_it);
+          
         }
+        
     }
  
      
     // Find transformation matrix
+    
     Mat T = estimateRigidTransform(prev_pts, curr_pts, false);
  
     // In rare cases no transform is found.
+    
     // We'll just use the last known good transform.
+    
     if(T.data == NULL) last_T.copyTo(T);
+    
     T.copyTo(last_T);
  
     // Extract traslation
+    
     double dx = T.at<double>(0,2);
+    
     double dy = T.at<double>(1,2);
      
     // Extract rotation angle
+    
     double da = atan2(T.at<double>(1,0), T.at<double>(0,0));
  
     // Store transformation
+    
     transforms.push_back(TransformParam(dx, dy, da));
  
     // Move to next frame
+    
     curr_gray.copyTo(prev_gray);
  
     cout << "Frame: " << i << "/" << n_frames << " -  Tracked points : " << prev_pts.size() << endl;
+    
   }
 
 第4步：计算帧间的平滑运动
@@ -267,13 +362,19 @@ struct TransformParam
 
 4.1 计算轨迹
 本步中，通过加上帧间的运动来计算轨迹。终极目标是把这个轨迹平滑掉。
+
 Python
+
 在python中通过numpy中的cumsum方法很容易实现。
+
 #Compute trajectory using cumulative sum of transformations
+
 trajectory = np.cumsum(transforms, axis=0)
 
 C++
+
 在C++中，定义了一个Trajectory类来存储转换参数的和。
+
 struct Trajectory
 {
     Trajectory() {}
@@ -381,16 +482,20 @@ vector <Trajectory> smooth(vector <Trajectory>& trajectory, int radius)
 
 在main函数中的使用。
 // Smooth trajectory using moving average filter
+
 vector <Trajectory> smoothed_trajectory = smooth(trajectory, SMOOTHING_RADIUS);
 
 4.3 计算平滑转换
 现在已经获得了平滑轨迹。在这一步，用平滑轨迹获得平滑转换，这个平滑转换可以作用于视频帧上稳定视频。通过对比平滑轨迹与原始轨迹，把差值作用到原始转换上。
 
 Python
+
 #Calculate difference in smoothed_trajectory and trajectory
+
 difference = smoothed_trajectory - trajectory
  
 #Calculate newer transformation array
+
 transforms_smooth = transforms + difference
 
 C++
@@ -418,10 +523,13 @@ vector <TransformParam> transforms_smooth;
  
 
 Python
+
 #Reset stream to first frame
+
 cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
  
 #Write n_frames-1 transformed frames
+
 for i in range(n_frames-2):
   #Read next frame
   success, frame = cap.read()
@@ -429,11 +537,13 @@ for i in range(n_frames-2):
     break
  
   #Extract transformations from the new transformation array
+  
   dx = transforms_smooth[i,0]
   dy = transforms_smooth[i,1]
   da = transforms_smooth[i,2]
  
   #Reconstruct transformation matrix accordingly to new values
+  
   m = np.zeros((2,3), np.float32)
   m[0,0] = np.cos(da)
   m[0,1] = -np.sin(da)
@@ -443,15 +553,19 @@ for i in range(n_frames-2):
   m[1,2] = dy
  
   #Apply affine wrapping to the given frame
+  
   frame_stabilized = cv2.warpAffine(frame, m, (w,h))
  
   #Fix border artifacts
+  
   frame_stabilized = fixBorder(frame_stabilized)
  
   #Write the frame to the file
+  
   frame_out = cv2.hconcat([frame, frame_stabilized])
  
   #If the image is too big, resize it.
+  
   if(frame_out.shape[1] &gt; 1920):
     frame_out = cv2.resize(frame_out, (frame_out.shape[1]/2, frame_out.shape[0]/2));
  
