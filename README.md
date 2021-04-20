@@ -1,15 +1,17 @@
 # video_stabilization
 对一段视频防抖，对实时视频防抖（usb相机、rtsp相机）
 
-先看一段我故意摇晃摄像头，经过防抖处理后的效果：
+# 先看几个效果
+
+## 1、这是我故意摇晃摄像头，经过防抖处理后的效果：
 
 ![image](https://github.com/lengkujiaai/video_stabilization/blob/main/image/live_stabilization.gif)
 
-调用摄像头实时视频的处理，左侧是处理前的视频，右侧是处理后的视频：
+## 2、调用摄像头实时视频的处理，左侧是处理前的视频，右侧是处理后的视频：
 
 ![image](https://github.com/lengkujiaai/video_stabilization/blob/main/image/compare.gif)
 
-对一段视频的处理，左侧是处理前的一段视频，右侧是处理后的一段视频：
+## 3、对一段视频的处理，左侧是处理前的一段视频，右侧是处理后的一段视频：
 
 ![image](https://github.com/lengkujiaai/video_stabilization/blob/main/image/compare_video.gif)
 
