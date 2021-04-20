@@ -700,4 +700,5 @@ void fixBorder(Mat &frame_stabilized)
 # 参考资料：
 
 1、	代码：videostab.cpp
-2、	数据、图片来自：https://abhitronix.github.io/
+
+2、 参考资料：https://abhitronix.github.io/
