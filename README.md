@@ -698,6 +698,8 @@ void fixBorder(Mat &frame_stabilized)
 
 1、	C++代码目录：/sources/videostab.cpp
 
+    编译c++的脚本：g++ cplusplus.cpp -o test `pkg-config --cflags --libs opencv`   注意逗点，在左上角Esc键下面
+
 2、 https://abhitronix.github.io/
 
 3、https://learnopencv.com/video-stabilization-using-point-feature-matching-in-opencv/
