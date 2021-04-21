@@ -741,6 +741,8 @@ void fixBorder(Mat &frame_stabilized)
 
 6、F Vella, A Castorina, M Mancuso. Digital image stabilization by adaptive block motion 	vectors filtering, IEEE Transactions on Consumer Electronics, 2002
 
+7、MingweiCao Liping ZhengWeiJia XiaopingLiu。Real-time video stabilization via camera path correction and its applications to augmented reality on edge devices
+
 
 # 关于我们
 
