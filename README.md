@@ -746,10 +746,10 @@ void fixBorder(Mat &frame_stabilized)
 
 # 关于我们
 
-1、2021-04-20，本部门为研发中心。
+1、2021-04-20，本部门为研发中心。----------注：2023年3月已经转到菏泽职业学院信息工程系，在物联网专业当老师
 
 2、公司在淘宝销售nvidia jetson 系列的产品，包括jetson nano，     TX1,     TX2,    AGX XAVIER,        XAVIER NX产品
 
 3、技术微信
 
-![image](https://github.com/lengkujiaai/video_stabilization/blob/main/image/weixin.jpg)
+![image](https://github.com/lengkujiaai/video_stabilization/blob/main/image/weixinshi.jpg)
